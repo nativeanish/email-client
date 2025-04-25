@@ -162,7 +162,35 @@ export default function LandingPage() {
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-700/30 via-teal-900/50 to-teal-950/80"
         ></motion.div>
 
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat opacity-5"></div>
+        {/* <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat opacity-5"></div> */}
+        <div className="absolute inset-0 pointer-events-none opacity-5">
+          <svg
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0 0 L100 0 L100 100 L0 100 Z"
+              fill="none"
+              stroke="white"
+              strokeOpacity="0.05"
+              strokeWidth="0.5"
+            />
+            <path
+              d="M50 0 L50 100"
+              stroke="white"
+              strokeOpacity="0.05"
+              strokeWidth="0.5"
+            />
+            <path
+              d="M0 50 L100 50"
+              stroke="white"
+              strokeOpacity="0.05"
+              strokeWidth="0.5"
+            />
+          </svg>
+        </div>
 
         <motion.div
           animate={{
