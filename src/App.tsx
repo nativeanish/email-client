@@ -1,3 +1,5 @@
+import type React from "react";
+
 import { useState, useEffect, useRef } from "react";
 import { Mail } from "lucide-react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
@@ -15,7 +17,6 @@ export default function LandingPage() {
 
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  // const opacity = useTransform(scrollYProgress, [0, 0.2, 0.3], [1, 0.8, 0.6]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,8 +27,135 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [cursorVisible, setCursorVisible] = useState(false);
+  const cursorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+      setCursorVisible(true);
+    };
+
+    const handleMouseLeave = () => {
+      setCursorVisible(false);
+    };
+
+    const handleMouseEnter = () => {
+      setCursorVisible(true);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    document.body.addEventListener("mouseleave", handleMouseLeave);
+    document.body.addEventListener("mouseenter", handleMouseEnter);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.body.removeEventListener("mouseleave", handleMouseLeave);
+      document.body.removeEventListener("mouseenter", handleMouseEnter);
+    };
+  }, []);
+
+  const [ripples, setRipples] = useState<
+    Array<{ x: number; y: number; id: number }>
+  >([]);
+  const nextId = useRef(0);
+
+  const addRipple = (x: number, y: number) => {
+    const newRipple = { x, y, id: nextId.current };
+    nextId.current += 1;
+    setRipples((prev) => [...prev, newRipple]);
+
+    setTimeout(() => {
+      setRipples((prev) => prev.filter((ripple) => ripple.id !== newRipple.id));
+    }, 2000);
+  };
+
+  const handleMouseClick = (e: React.MouseEvent) => {
+    addRipple(e.clientX, e.clientY);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-800 via-teal-900 to-teal-950 text-white overflow-hidden font-serif">
+    <div
+      className="min-h-screen bg-gradient-to-b from-teal-800 via-teal-900 to-teal-950 text-white overflow-hidden font-serif"
+      onClick={handleMouseClick}
+    >
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        onClick={handleMouseClick}
+        style={{ pointerEvents: "none" }}
+      >
+        <motion.div
+          ref={cursorRef}
+          className="fixed w-40 h-40 rounded-full pointer-events-none z-10"
+          animate={{
+            x: mousePosition.x - 80,
+            y: mousePosition.y - 80,
+            opacity: cursorVisible ? 1 : 0,
+          }}
+          transition={{
+            type: "spring",
+            damping: 30,
+            stiffness: 200,
+            mass: 0.5,
+          }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-teal-400/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            }}
+          />
+
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-teal-300/60 rounded-full"
+              animate={{
+                x: Math.sin(i * 60 * (Math.PI / 180)) * 60,
+                y: Math.cos(i * 60 * (Math.PI / 180)) * 60,
+                opacity: [0.2, 0.8, 0.2],
+                scale: [0.8, 1.2, 0.8],
+              }}
+              transition={{
+                duration: 2 + i * 0.2,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {ripples.map((ripple) => (
+          <motion.div
+            key={ripple.id}
+            className="fixed w-0 h-0 bg-transparent border-2 border-teal-400/40 rounded-full pointer-events-none"
+            style={{
+              left: ripple.x,
+              top: ripple.y,
+              translateX: "-50%",
+              translateY: "-50%",
+            }}
+            initial={{ width: 0, height: 0, opacity: 0.7 }}
+            animate={{
+              width: 500,
+              height: 500,
+              opacity: 0,
+              borderWidth: 0.5,
+            }}
+            transition={{
+              duration: 2,
+              ease: "easeOut",
+            }}
+          />
+        ))}
+      </div>
+
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
           style={{ y: backgroundY }}
@@ -242,7 +370,9 @@ export default function LandingPage() {
                       <div className="h-3 w-3 rounded-full bg-yellow-400/70"></div>
                       <div className="h-3 w-3 rounded-full bg-green-400/70"></div>
                     </div>
-                    <div className="text-teal-200/80 font-sans text-sm"></div>
+                    <div className="text-teal-200/80 font-sans text-sm">
+                      Permaemail Client
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-12 gap-4">
